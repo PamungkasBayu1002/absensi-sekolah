@@ -3,58 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEM ABSENSI WAJAH SMARTBOARD</title>
+    <title>SMKN RESTORASI PULAU KOMODO - ABSENSI</title>
     <!-- Pustaka Pengenalan Wajah & Ekspor Excel -->
     <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <script defer src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-transform: uppercase; }
-        body { margin: 0; background-color: #0f172a; color: #f8fafc; height: 100vh; display: flex; flex-direction: column; }
+        body { margin: 0; background-color: #0c192c; color: #f8fafc; height: 100vh; display: flex; flex-direction: column; }
         
-        /* Header */
-        header { background-color: #1e293b; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; }
-        header h1 { margin: 0; font-size: 1.5rem; color: #38bdf8; letter-spacing: 1px; }
-        .clock { font-size: 1.4rem; font-weight: bold; color: #eab308; }
+        /* Header dengan Tema Logo (Biru & Emas) */
+        header { background-color: #0f172a; padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #facc15; }
+        .header-brand { display: flex; align-items: center; gap: 15px; }
+        .school-logo { width: 50px; height: 50px; object-fit: contain; border-radius: 50%; background: white; padding: 2px; border: 2px solid #facc15; }
+        header h1 { margin: 0; font-size: 1.3rem; color: #38bdf8; letter-spacing: 1px; }
+        header p { margin: 0; font-size: 0.75rem; color: #facc15; font-weight: bold; }
+        .clock { font-size: 1.3rem; font-weight: bold; color: #facc15; background: #1e293b; padding: 5px 15px; border-radius: 8px; border: 1px solid #334155; }
 
         /* Layout Layar Lebar */
         main { display: flex; flex: 1; padding: 20px; gap: 20px; overflow: hidden; }
         
         /* Kolom Kiri: Kamera */
-        .camera-section { flex: 1.3; background: #1e293b; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
-        .video-wrapper { position: relative; width: 100%; max-width: 720px; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; border: 3px solid #38bdf8; }
+        .camera-section { flex: 1.3; background: #1e293b; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; border: 1px solid #334155; }
+        .video-wrapper { position: relative; width: 100%; max-width: 720px; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; border: 3px solid #facc15; }
         video, canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
-        .status-banner { margin-top: 15px; padding: 12px 25px; border-radius: 8px; font-size: 1.1rem; font-weight: bold; text-align: center; width: 100%; max-width: 720px; background: #334155; letter-spacing: 0.5px; }
-        .status-success { background: #16a34a !important; color: white; }
+        .status-banner { margin-top: 15px; padding: 12px 25px; border-radius: 8px; font-size: 1.05rem; font-weight: bold; text-align: center; width: 100%; max-width: 720px; background: #334155; letter-spacing: 0.5px; border: 1px solid #475569; }
+        .status-success { background: #16a34a !important; color: white; border-color: #22c55e !important; }
         .status-loading { background: #ca8a04 !important; color: white; }
 
         /* Kolom Kanan: Panel Kontrol & Riwayat */
-        .control-section { flex: 1; background: #1e293b; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
+        .control-section { flex: 1; background: #1e293b; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; border: 1px solid #334155; }
         .tabs { display: flex; gap: 10px; }
-        .tab-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; background: #334155; color: white; font-size: 0.9rem; font-weight: bold; cursor: pointer; }
-        .tab-btn.active { background: #0284c7; }
+        .tab-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; background: #334155; color: white; font-size: 0.85rem; font-weight: bold; cursor: pointer; border: 1px solid #475569; }
+        .tab-btn.active { background: #0284c7; border-color: #38bdf8; color: #f8fafc; }
 
         .panel { display: none; flex-direction: column; gap: 15px; flex: 1; }
         .panel.active { display: flex; }
 
-        /* Form Pendaftaran */
-        input, select, button.action-btn { padding: 12px; border-radius: 8px; border: 1px solid #475569; font-size: 0.95rem; }
+        /* Form Pendaftaran & Tombol Tema Emas/Biru */
+        input, select, button.action-btn { padding: 12px; border-radius: 8px; border: 1px solid #475569; font-size: 0.9rem; }
         input, select { background: #0f172a; color: white; }
-        button.action-btn { background: #22c55e; color: white; border: none; font-weight: bold; cursor: pointer; }
-        button.action-btn:hover { background: #16a34a; }
-        button.excel-btn { background: #10b981; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.9rem; }
-        button.danger-btn { background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+        input:focus, select:focus { border-color: #facc15; outline: none; }
+        button.action-btn { background: #eab308; color: #0f172a; border: none; font-weight: bold; cursor: pointer; }
+        button.action-btn:hover { background: #ca8a04; }
+        button.excel-btn { background: #059669; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
+        button.excel-btn:hover { background: #047857; }
+        button.danger-btn { background: #dc2626; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
 
         /* Tabel Kehadiran */
-        .table-container { flex: 1; overflow-y: auto; background: #0f172a; border-radius: 8px; padding: 10px; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .table-container { flex: 1; overflow-y: auto; background: #0f172a; border-radius: 8px; padding: 10px; border: 1px solid #334155; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #334155; }
-        th { color: #38bdf8; position: sticky; top: 0; background: #0f172a; font-weight: bold; }
+        th { color: #facc15; position: sticky; top: 0; background: #0f172a; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>SISTEM ABSENSI WAJAH SMARTBOARD</h1>
+    <div class="header-brand">
+        <!-- Logo Sekolah -->
+        <img src="https://i.ibb.co.com/84c3n8X/logo-smkn-restorasi.png" alt="Logo Sekolah" class="school-logo" id="mainLogo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
+        <div>
+            <h1>SMKN RESTORASI PULAU KOMODO</h1>
+            <p>SISTEM ABSENSI DIGITAL BERBASIS WAJAH</p>
+        </div>
+    </div>
     <div class="clock" id="clock">00:00:00</div>
 </header>
 
@@ -73,13 +85,13 @@
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('absen')">LOG KEHADIRAN</button>
             <button class="tab-btn" onclick="switchTab('daftar')">DAFTAR WAJAH</button>
-            <button class="tab-btn" onclick="switchTab('data')">DATABASE SISWA/GURU</button>
+            <button class="tab-btn" onclick="switchTab('data')">DATABASE WARGA SEKOLAH</button>
         </div>
 
-        <!-- PANEL 1: LOG ABSENSI (DATANG & PULANG) -->
+        <!-- PANEL 1: LOG ABSENSI -->
         <div id="panel-absen" class="panel active">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="margin:0; font-size: 1.1rem;">REKAP HARIAN</h3>
+                <h3 style="margin:0; font-size: 1rem; color: #facc15;">REKAP HARIAN</h3>
                 <button class="excel-btn" onclick="exportToExcel()">📥 EKSPOR KE EXCEL (.XLSX)</button>
             </div>
             <div class="table-container">
@@ -100,8 +112,8 @@
 
         <!-- PANEL 2: PENDAFTARAN WAJAH -->
         <div id="panel-daftar" class="panel">
-            <h3 style="margin:0; font-size: 1.1rem;">REGISTRASI WAJAH BARU</h3>
-            <p style="margin:0; font-size:0.85rem; color:#94a3b8;">POSISIKAN WAJAH MENGHADAP LURUS KE KAMERA, LALU ISI DATA DI BAWAH.</p>
+            <h3 style="margin:0; font-size: 1rem; color: #facc15;">REGISTRASI WAJAH BARU</h3>
+            <p style="margin:0; font-size:0.8rem; color:#94a3b8;">POSISIKAN WAJAH LURUS KE KAMERA, LALU ISI DATA DI BAWAH.</p>
             <input type="text" id="regName" placeholder="NAMA LENGKAP (CONTOH: BUDI SANTOSO)">
             <select id="regRole">
                 <option value="SISWA">SISWA</option>
@@ -114,7 +126,7 @@
         <!-- PANEL 3: DATABASE PENGGUNA -->
         <div id="panel-data" class="panel">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="margin:0; font-size: 1.1rem;">DAFTAR WAJAH TERDAFTAR</h3>
+                <h3 style="margin:0; font-size: 1rem; color: #facc15;">DAFTAR WAJAH TERDAFTAR</h3>
                 <button class="danger-btn" onclick="clearAttendance()">RESET LOG</button>
             </div>
             <div class="table-container">
@@ -143,7 +155,7 @@
     
     let labeledFaceDescriptors = [];
     let faceMatcher = null;
-    let recentScans = {}; // Mencegah spam scan dalam 1 menit
+    let recentScans = {};
 
     setInterval(() => {
         const now = new Date();
@@ -286,10 +298,9 @@
         loadUsersFromStorage();
     }
 
-    // Logika Absen Masuk & Pulang Otomatis
     function processAttendance(name) {
         const now = Date.now();
-        if (recentScans[name] && (now - recentScans[name] < 60000)) return; // Jeda 1 menit
+        if (recentScans[name] && (now - recentScans[name] < 60000)) return;
         recentScans[name] = now;
 
         const users = JSON.parse(localStorage.getItem('face_users') || '[]');
@@ -300,12 +311,9 @@
         const jam = dateObj.toLocaleTimeString('id-ID');
 
         let logs = JSON.parse(localStorage.getItem('attendance_logs') || '[]');
-        
-        // Cek apakah sudah absen hari ini
         let existingLog = logs.find(l => l.tanggal === tanggal && l.nama === name);
 
         if (!existingLog) {
-            // Belum ada -> Catat sebagai Masuk (Kedatangan)
             logs.unshift({
                 tanggal: tanggal,
                 nama: name,
@@ -314,12 +322,13 @@
                 pulang: '-'
             });
             statusBanner.innerText = `✅ ABSEN MASUK BERHASIL: ${name} (${jam})`;
+            statusBanner.classList.add('status-success');
         } else if (existingLog.pulang === '-') {
-            // Sudah ada absen masuk dan pulang masih kosong -> Catat sebagai Pulang
             existingLog.pulang = jam;
             statusBanner.innerText = `🏠 ABSEN PULANG BERHASIL: ${name} (${jam})`;
+            statusBanner.classList.add('status-success');
         } else {
-            statusBanner.innerText = `ℹ️ ${name} SUDAH MELAKUKAN ABSEN LENGKAP HARI INI.`;
+            statusBanner.innerText = `ℹ️ ${name} SUDAH ABSEN LENGKAP HARI INI.`;
             return;
         }
 
@@ -327,6 +336,7 @@
         renderAttendanceTable();
 
         setTimeout(() => {
+            statusBanner.classList.remove('status-success');
             statusBanner.innerText = "SISTEM SIAP! SILAKAN HADAPKAN WAJAH KE KAMERA.";
         }, 4000);
     }
@@ -359,7 +369,7 @@
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "REKAP ABSENSI");
 
-        const fileName = `REKAP_ABSENSI_${new Date().toISOString().slice(0,10)}.xlsx`;
+        const fileName = `REKAP_ABSENSI_SMKN_RESTORASI_${new Date().toISOString().slice(0,10)}.xlsx`;
         XLSX.writeFile(workbook, fileName);
     }
 </script>
